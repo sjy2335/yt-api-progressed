@@ -6,10 +6,11 @@ async function scrapeRecommendedVideos() {
   try {
     const browser = await puppeteer.launch({headless: 'new'});
     const page = await browser.newPage();
-    await page.goto('https://www.youtube.com', { waitUntil: 'networkidle2' });
+    await page.goto('https://www.youtube.com', { waitUntil: 'networkidle0' });
 
     // 추천된 영상 요소 선택 및 정보 추출
-    const recommendedVideos = await page.evaluate(() => {
+    // 추천된 영상 요소 선택 및 정보 추출
+    let recommendedVideos = await page.evaluate(() => {
       const videoElements = Array.from(document.querySelectorAll('ytd-rich-item-renderer'));
       return videoElements.map((element) => {
         const titleElement = element.querySelector('#video-title-link');
@@ -18,7 +19,7 @@ async function scrapeRecommendedVideos() {
         const title = titleElement ? titleElement.textContent.trim() : null;
         const videoId = titleElement ? titleElement.href.split('=')[1] : null;
         const thumbnail = thumbnailElement ? thumbnailElement.src : null;
-    
+
         return {
           title,
           videoId,
@@ -26,7 +27,10 @@ async function scrapeRecommendedVideos() {
         };
       });
     });
-    
+
+    await page.waitForSelector('ytd-thumbnail img');  // 이미지가 로딩될 때까지 대기
+
+    recommendedVideos = recommendedVideos.filter(video => video.title !== null && video.videoId !== null);
 
     console.log("scrapped?");
     console.log(recommendedVideos); // 크롤링한 데이터를 콘솔에 출력
