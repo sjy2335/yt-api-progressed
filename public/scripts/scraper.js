@@ -1,25 +1,37 @@
-const axios = require('axios');
-const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
+const cheerio = require("cheerio");
 
 // 유튜브 웹사이트에서 추천된 영상 크롤링
 async function scrapeRecommendedVideos() {
   try {
-    const response = await axios.get('https://www.youtube.com');
-    const $ = cheerio.load(response.data);
+    const browser = await puppeteer.launch({headless: 'new'});
+    const page = await browser.newPage();
+    await page.goto('https://www.youtube.com', { waitUntil: 'networkidle2' });
 
     // 추천된 영상 요소 선택 및 정보 추출
-    const recommendedVideoElements = $('ytd-video-renderer');
-    const recommendedVideos = recommendedVideoElements.map((index, element) => {
-      const title = $(element).find('#video-title').text().trim();
-      const videoId = $(element).find('#video-title').attr('href').split('=')[1];
-      const thumbnail = $(element).find('#thumbnail').attr('src');
+    const recommendedVideos = await page.evaluate(() => {
+      const videoElements = Array.from(document.querySelectorAll('ytd-rich-item-renderer'));
+      return videoElements.map((element) => {
+        const titleElement = element.querySelector('#video-title-link');
+        const thumbnailElement = element.querySelector('ytd-thumbnail img');
+        
+        const title = titleElement ? titleElement.textContent.trim() : null;
+        const videoId = titleElement ? titleElement.href.split('=')[1] : null;
+        const thumbnail = thumbnailElement ? thumbnailElement.src : null;
+    
+        return {
+          title,
+          videoId,
+          thumbnail,
+        };
+      });
+    });
+    
 
-      return {
-        title,
-        videoId,
-        thumbnail,
-      };
-    }).get();
+    console.log("scrapped?");
+    console.log(recommendedVideos); // 크롤링한 데이터를 콘솔에 출력
+
+    await browser.close();
 
     return recommendedVideos;
   } catch (error) {
@@ -31,3 +43,6 @@ async function scrapeRecommendedVideos() {
 module.exports = {
   scrapeRecommendedVideos,
 };
+
+// 함수 실행하여 결과 확인
+scrapeRecommendedVideos();

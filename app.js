@@ -22,7 +22,7 @@ app.use(express.static("public"));
 
 // 쿠키를 설정하는 미들웨어
 app.use((req, res, next) => {
-  res.cookie('key', 'value', { SameSite: 'None', secure: false }); // 쿠키를 설정합니다.
+  res.cookie('key', 'value', { SameSite: 'Lax', secure: false }); // 쿠키를 설정합니다.
   next();
 });
 
