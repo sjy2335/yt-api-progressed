@@ -43,6 +43,3 @@ async function scrapeRecommendedVideos() {
 module.exports = {
   scrapeRecommendedVideos,
 };
-
-// 함수 실행하여 결과 확인
-scrapeRecommendedVideos();

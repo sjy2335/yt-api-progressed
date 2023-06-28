@@ -21,6 +21,7 @@ router.get("/home", async (req, res) => {
   try {
     // 크롤링하여 추출한 영상 배열
     const videos = await scrapeRecommendedVideos();
+    videos.length = 10;
     res.render("videos", { videos });
   } catch (error) {
     console.error('Error:', error);
